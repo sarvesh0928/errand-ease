@@ -16,7 +16,7 @@ const dbConfig = {
     server: 'LAPTOP-351ASENR',
     database: 'ErrandEase',
     user: 'node_user',
-    password: 'NodePass123',
+    password: process.env.DB_PASSWORD,
     port: 1433,
     options: {
         encrypt: false,
