@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — ErrandEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #0A0F1E;
+            --navy-light: #111827;
+            --indigo: #6366F1;
+            --indigo-dark: #4F46E5;
+            --violet: #7C3AED;
+            --emerald: #10B981;
+            --amber: #F59E0B;
+            --rose: #F43F5E;
+            --surface: #111827;
+            --surface2: #1E293B;
+            --border: rgba(255,255,255,0.07);
+            --text-primary: #F8FAFF;
+            --text-secondary: #94A3B8;
+            --text-muted: #475569;
+            --card-radius: 16px;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--text-primary); min-height: 100vh; }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            background: rgba(17,24,39,0.96);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+            padding: 0 32px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--violet), var(--indigo));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .nav-brand h2 {
+            font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, #F8FAFF, #C084FC);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .nav-brand span {
+            font-size: 12px; padding: 2px 10px; border-radius: 20px; margin-left: 4px;
+            background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3);
+            -webkit-text-fill-color: #C084FC; color: #C084FC;
+        }
+        .nav-right { display: flex; align-items: center; gap: 10px; }
+        .nav-btn {
+            height: 36px; padding: 0 16px; border: 1px solid var(--border); border-radius: 10px;
+            background: var(--surface2); color: var(--text-primary); font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: flex; align-items: center; gap: 6px; font-family: 'Inter', sans-serif;
+        }
+        .nav-btn:hover { border-color: var(--violet); color: #C084FC; }
+        .nav-btn.btn-danger { color: var(--rose); border-color: rgba(244,63,94,0.3); }
+        .nav-btn.btn-danger:hover { background: rgba(244,63,94,0.1); border-color: var(--rose); }
+        .nav-btn.btn-violet { background: var(--violet); border-color: var(--violet); color: white; }
+        .nav-btn.btn-violet:hover { background: #6D28D9; }
+
+        /* ── TOAST ── */
+        .toast-container { position: fixed; top: 80px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            max-width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .toast.success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6EE7B7; }
+        .toast.error { background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.3); color: #FDA4AF; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+        /* ── MAIN ── */
+        .main { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+
+        /* ── STAT CARDS ── */
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--card-radius); padding: 20px 22px;
+            position: relative; overflow: hidden; transition: border-color 0.2s;
+        }
+        .stat-card:hover { border-color: rgba(124,58,237,0.3); }
+        .stat-card::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+            background: var(--stat-color, var(--violet)); opacity: 0.6; border-radius: 0 0 var(--card-radius) var(--card-radius);
+        }
+        .stat-card:nth-child(1) { --stat-color: var(--indigo); }
+        .stat-card:nth-child(2) { --stat-color: var(--emerald); }
+        .stat-card:nth-child(3) { --stat-color: var(--amber); }
+        .stat-card:nth-child(4) { --stat-color: #0EA5E9; }
+        .stat-card:nth-child(5) { --stat-color: var(--emerald); }
+
+        .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+        .stat-num { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+        .stat-icon { position: absolute; top: 18px; right: 18px; font-size: 24px; opacity: 0.2; }
+
+        /* ── TAB PANEL ── */
+        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--card-radius); overflow: hidden; }
+
+        .tab-bar {
+            display: flex; padding: 0 24px; gap: 2px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+        }
+        .tab-btn {
+            padding: 16px 20px; border: none; background: none;
+            color: var(--text-secondary); font-size: 13px; font-weight: 600;
+            cursor: pointer; border-bottom: 2px solid transparent;
+            transition: all 0.2s; font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { color: #C084FC; border-bottom-color: var(--violet); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Search bar */
+        .panel-toolbar {
+            padding: 16px 24px; display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .search-wrap { position: relative; flex: 1; max-width: 320px; }
+        .search-wrap input {
+            width: 100%; padding: 9px 14px 9px 36px;
+            background: var(--navy); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-primary); font-size: 14px;
+            font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;
+        }
+        .search-wrap input:focus { border-color: var(--violet); }
+        .search-wrap .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-muted); }
+        .panel-count { font-size: 13px; color: var(--text-secondary); margin-left: auto; }
+
+        /* ── TABLE ── */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            padding: 12px 20px; text-align: left;
+            font-size: 11px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.7px;
+            background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        tbody td {
+            padding: 14px 20px; font-size: 14px; color: var(--text-primary);
+            border-bottom: 1px solid var(--border); vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr { transition: background 0.15s; }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* Status / Role badges */
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700; padding: 4px 10px;
+            border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+        }
+        .badge.pending   { background: rgba(245,158,11,0.12); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .badge.approved  { background: rgba(16,185,129,0.12); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.25); }
+        .badge.user      { background: rgba(99,102,241,0.12); color: #A5B4FC; border: 1px solid rgba(99,102,241,0.25); }
+        .badge.runner    { background: rgba(16,185,129,0.12); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.25); }
+        .badge.admin     { background: rgba(124,58,237,0.12); color: #C084FC; border: 1px solid rgba(124,58,237,0.25); }
+        .badge.errand-pending   { background: rgba(245,158,11,0.12); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .badge.errand-accepted  { background: rgba(99,102,241,0.12); color: #A5B4FC; border: 1px solid rgba(99,102,241,0.25); }
+        .badge.errand-completed { background: rgba(16,185,129,0.12); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.25); }
+
+        /* Action buttons */
+        .act-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 12px; border: 1px solid; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .act-btn.approve { color: var(--emerald); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
+        .act-btn.approve:hover { background: var(--emerald); color: white; border-color: var(--emerald); }
+        .act-btn.reject  { color: var(--rose); border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.08); }
+        .act-btn.reject:hover  { background: var(--rose); color: white; border-color: var(--rose); }
+        .act-btn.delete  { color: var(--rose); border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.08); }
+        .act-btn.delete:hover  { background: var(--rose); color: white; border-color: var(--rose); }
+        .actions-cell { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+        /* Name cell */
+        .name-cell { display: flex; align-items: center; gap: 10px; }
+        .mini-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; flex-shrink: 0;
+            font-family: 'Sora', sans-serif;
+        }
+        .mini-avatar.user-av   { background: rgba(99,102,241,0.2); color: #A5B4FC; }
+        .mini-avatar.runner-av { background: rgba(16,185,129,0.2); color: #6EE7B7; }
+        .mini-avatar.admin-av  { background: rgba(124,58,237,0.2); color: #C084FC; }
+        .name-cell .name { font-weight: 500; }
+        .name-cell .uname { font-size: 12px; color: var(--text-secondary); }
+
+        .type-cell { display: flex; align-items: center; gap: 8px; }
+        .amt-cell { font-family: 'Sora', sans-serif; font-weight: 600; color: var(--emerald); }
+
+        /* Empty / loading */
+        .table-empty { text-align: center; padding: 60px 24px; color: var(--text-muted); }
+        .table-empty .big-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+
+        .dark-mode { --navy: #070B14; --navy-light: #0D1220; --surface: #0D1220; --surface2: #141C2E; }
+        .dm-active { background: var(--indigo-dark) !important; border-color: var(--indigo) !important; color: white !important; }
+
+        @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 700px) { .stats-row { grid-template-columns: 1fr 1fr; } .topnav { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 8px; } .main { padding: 20px 16px; } }
+    </style>
+</head>
+<body>
+    <!-- TOP NAV -->
+    <nav class="topnav">
+        <div class="nav-brand">
+            <div class="nav-logo">⚙️</div>
+            <h2>ErrandEase</h2>
+            <span>Admin</span>
+        </div>
+        <div class="nav-right">
+            <button class="nav-btn" id="dmBtn" onclick="toggleDarkMode()">🌙</button>
+            <button class="nav-btn btn-violet" onclick="refreshAll()">🔄 Refresh</button>
+            <button class="nav-btn btn-danger" onclick="logout()">Sign Out</button>
+        </div>
+    </nav>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <!-- STATS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-num" id="totalUsers">—</div>
+                <div class="stat-icon">👤</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Runners</div>
+                <div class="stat-num" id="totalRunners">—</div>
+                <div class="stat-icon">🏃</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Approval</div>
+                <div class="stat-num" id="pendingRunners">—</div>
+                <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Errands</div>
+                <div class="stat-num" id="totalErrands">—</div>
+                <div class="stat-icon">📋</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed</div>
+                <div class="stat-num" id="completedErrands">—</div>
+                <div class="stat-icon">✅</div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="panel">
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="runners" onclick="switchTab('runners', this)">
+                    🏃 Runner Applications
+                    <span id="pendingBadge" style="background:rgba(245,158,11,0.2);color:#FCD34D;border:1px solid rgba(245,158,11,0.3);font-size:10px;padding:2px 6px;border-radius:20px;font-weight:700;">0</span>
+                </button>
+                <button class="tab-btn" data-tab="users" onclick="switchTab('users', this)">👥 All Users</button>
+                <button class="tab-btn" data-tab="errands" onclick="switchTab('errands', this)">📋 All Errands</button>
+            </div>
+
+            <!-- RUNNERS TAB -->
+            <div id="runnersTab" class="tab-content active">
+                <div class="panel-toolbar">
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchRunners" placeholder="Search applications…" oninput="filterRows('runnersTable', this.value)">
+                    </div>
+                    <span class="panel-count" id="runnersCount"></span>
+                </div>
+                <div class="table-wrap">
+                    <table id="runnersTable">
+                        <thead><tr><th>Applicant</th><th>Username</th><th>Applied</th><th>Actions</th></tr></thead>
+                        <tbody id="runnersTbody"><tr><td colspan="4"><div class="table-empty"><div class="big-icon">⏳</div><p>Loading…</p></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- USERS TAB -->
+            <div id="usersTab" class="tab-content">
+                <div class="panel-toolbar">
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchUsers" placeholder="Search users…" oninput="filterRows('usersTable', this.value)">
+                    </div>
+                    <span class="panel-count" id="usersCount"></span>
+                </div>
+                <div class="table-wrap">
+                    <table id="usersTable">
+                        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Joined</th><th>Action</th></tr></thead>
+                        <tbody id="usersTbody"><tr><td colspan="6"><div class="table-empty"><div class="big-icon">⏳</div><p>Loading…</p></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ERRANDS TAB -->
+            <div id="errandsTab" class="tab-content">
+                <div class="panel-toolbar">
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchErrands" placeholder="Search errands…" oninput="filterRows('errandsTable', this.value)">
+                    </div>
+                    <span class="panel-count" id="errandsCount"></span>
+                </div>
+                <div class="table-wrap">
+                    <table id="errandsTable">
+                        <thead><tr><th>Type</th><th>Description</th><th>User</th><th>Runner</th><th>Status</th><th>Amount</th><th>Action</th></tr></thead>
+                        <tbody id="errandsTbody"><tr><td colspan="7"><div class="table-empty"><div class="big-icon">⏳</div><p>Loading…</p></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:5000';
+        let allUsers = [], allErrands = [];
+
+        /* ── DARK MODE ── */
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const on = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', on);
+            const btn = document.getElementById('dmBtn');
+            btn.textContent = on ? '☀️' : '🌙';
+            btn.classList.toggle('dm-active', on);
+        }
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dmBtn').textContent = '☀️';
+            document.getElementById('dmBtn').classList.add('dm-active');
+        }
+
+        /* ── TOAST ── */
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        /* ── LOAD ALL ── */
+        async function loadAll() {
+            const [uRes, eRes] = await Promise.all([fetch(`${API}/api/users`), fetch(`${API}/api/errands`)]);
+            allUsers = await uRes.json();
+            allErrands = await eRes.json();
+            updateStats(); renderRunners(); renderUsers(); renderErrands();
+        }
+
+        function updateStats() {
+            const users = allUsers.filter(u => u.Role === 'user');
+            const runners = allUsers.filter(u => u.Role === 'runner');
+            const pending = runners.filter(r => !r.IsApproved);
+            const completed = allErrands.filter(e => e.Status === 'completed');
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('totalRunners').textContent = runners.length;
+            document.getElementById('pendingRunners').textContent = pending.length;
+            document.getElementById('totalErrands').textContent = allErrands.length;
+            document.getElementById('completedErrands').textContent = completed.length;
+            document.getElementById('pendingBadge').textContent = pending.length;
+        }
+
+        /* ── RENDER RUNNERS ── */
+        function renderRunners() {
+            const pending = allUsers.filter(u => u.Role === 'runner' && !u.IsApproved);
+            document.getElementById('runnersCount').textContent = `${pending.length} pending`;
+            const tbody = document.getElementById('runnersTbody');
+            if (!pending.length) {
+                tbody.innerHTML = `<tr><td colspan="4"><div class="table-empty"><div class="big-icon">🎉</div><p>All runner applications have been reviewed!</p></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = pending.map(r => `
+                <tr>
+                    <td><div class="name-cell">
+                        <div class="mini-avatar runner-av">${r.FullName.charAt(0).toUpperCase()}</div>
+                        <div><div class="name">${r.FullName}</div></div>
+                    </div></td>
+                    <td style="color:var(--text-secondary)">@${r.Username}</td>
+                    <td style="color:var(--text-secondary);font-size:13px">${fmtDate(r.CreatedAt)}</td>
+                    <td><div class="actions-cell">
+                        <button class="act-btn approve" onclick="approveRunner(${r.UserId})">✓ Approve</button>
+                        <button class="act-btn reject" onclick="rejectRunner(${r.UserId})">✕ Reject</button>
+                    </div></td>
+                </tr>`).join('');
+        }
+
+        /* ── RENDER USERS ── */
+        function renderUsers() {
+            document.getElementById('usersCount').textContent = `${allUsers.length} members`;
+            const tbody = document.getElementById('usersTbody');
+            tbody.innerHTML = allUsers.map(u => {
+                const avClass = u.Role === 'runner' ? 'runner-av' : u.Role === 'admin' ? 'admin-av' : 'user-av';
+                const roleBadge = `<span class="badge ${u.Role}">${u.Role === 'user' ? '👤 User' : u.Role === 'runner' ? '🏃 Runner' : '⚙️ Admin'}</span>`;
+                const statusBadge = u.IsApproved ? '<span class="badge approved">Active</span>' : '<span class="badge pending">Pending</span>';
+                const deleteBtn = u.Role !== 'admin' ? `<button class="act-btn delete" onclick="deleteUser(${u.UserId})">Delete</button>` : '<span style="color:var(--text-muted);font-size:13px">Protected</span>';
+                return `<tr>
+                    <td><div class="name-cell">
+                        <div class="mini-avatar ${avClass}">${u.FullName.charAt(0).toUpperCase()}</div>
+                        <div><div class="name">${u.FullName}</div></div>
+                    </div></td>
+                    <td style="color:var(--text-secondary)">@${u.Username}</td>
+                    <td>${roleBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td style="color:var(--text-secondary);font-size:13px">${fmtDate(u.CreatedAt)}</td>
+                    <td>${deleteBtn}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        /* ── RENDER ERRANDS ── */
+        function renderErrands() {
+            document.getElementById('errandsCount').textContent = `${allErrands.length} total`;
+            const tbody = document.getElementById('errandsTbody');
+            if (!allErrands.length) {
+                tbody.innerHTML = `<tr><td colspan="7"><div class="table-empty"><div class="big-icon">📭</div><p>No errands posted yet.</p></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = allErrands.map(e => `<tr>
+                <td><div class="type-cell">${ti(e.Type)} ${tn(e.Type)}</div></td>
+                <td style="color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${e.Description}">${e.Description.substring(0,60)}${e.Description.length > 60 ? '…' : ''}</td>
+                <td>${e.UserName || e.UserUsername || '—'}</td>
+                <td style="color:var(--text-secondary)">${e.RunnerName || '<span style="color:var(--text-muted)">Unassigned</span>'}</td>
+                <td><span class="badge errand-${e.Status}">${e.Status.toUpperCase()}</span></td>
+                <td class="amt-cell">₹${e.CashAmount}</td>
+                <td><button class="act-btn delete" onclick="deleteErrand(${e.ErrandId})">Delete</button></td>
+            </tr>`).join('');
+        }
+
+        /* ── ACTIONS ── */
+        async function approveRunner(id) {
+            const res = await fetch(`${API}/api/users/${id}/approve`, { method: 'PUT' });
+            if (res.ok) { showToast('Runner approved!'); await loadAll(); }
+            else showToast('Failed to approve', 'error');
+        }
+        async function rejectRunner(id) {
+            if (!confirm('Reject this runner? Their account will be deleted.')) return;
+            const res = await fetch(`${API}/api/users/${id}`, { method: 'DELETE' });
+            if (res.ok) { showToast('Application rejected'); await loadAll(); }
+            else showToast('Failed to reject', 'error');
+        }
+        async function deleteUser(id) {
+            if (!confirm('Delete this user and all their errands?')) return;
+            const res = await fetch(`${API}/api/users/${id}`, { method: 'DELETE' });
+            if (res.ok) { showToast('User deleted'); await loadAll(); }
+            else showToast('Failed to delete', 'error');
+        }
+        async function deleteErrand(id) {
+            if (!confirm('Delete this errand?')) return;
+            const res = await fetch(`${API}/api/errands/${id}`, { method: 'DELETE' });
+            if (res.ok) { showToast('Errand deleted'); await loadAll(); }
+            else showToast('Failed to delete', 'error');
+        }
+
+        /* ── TABS ── */
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            ['runnersTab','usersTab','errandsTab'].forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        /* ── SEARCH ── */
+        function filterRows(tableId, q) {
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            if (!tbody) return;
+            const term = q.toLowerCase();
+            Array.from(tbody.rows).forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none';
+            });
+        }
+
+        /* ── UTILS ── */
+        function ti(t) { return {shopping:'🛍️',housework:'🧹',escort:'🚗',package:'📦',companion:'💬'}[t] || '📋'; }
+        function tn(t) { return {shopping:'Shopping',housework:'Housework',escort:'Escort',package:'Package Delivery',companion:'Companion'}[t] || t; }
+        function fmtDate(d) { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+        function refreshAll() { loadAll(); showToast('Dashboard refreshed!'); }
+        function logout() { localStorage.removeItem('userRole'); window.location.href = '/'; }
+
+        loadAll();
+    </script>
+</body>
+</html>

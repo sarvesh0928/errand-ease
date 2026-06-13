@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard — ErrandEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #0A0F1E;
+            --navy-light: #111827;
+            --indigo: #6366F1;
+            --indigo-dark: #4F46E5;
+            --emerald: #10B981;
+            --amber: #F59E0B;
+            --rose: #F43F5E;
+            --surface: #111827;
+            --surface2: #1E293B;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(99,102,241,0.4);
+            --text-primary: #F8FAFF;
+            --text-secondary: #94A3B8;
+            --text-muted: #475569;
+            --card-radius: 16px;
+            --green: #10B981;
+        }
+
+        /* ── LAYOUT ── */
+        body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--text-primary); min-height: 100vh; }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            background: rgba(17,24,39,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+            padding: 0 32px;
+            height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-brand {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--indigo), var(--green));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .nav-brand h2 {
+            font-family: 'Sora', sans-serif;
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, #F8FAFF, var(--indigo));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .nav-brand span {
+            font-size: 12px; font-weight: 500; color: var(--text-secondary);
+            background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+            padding: 2px 10px; border-radius: 20px; margin-left: 4px;
+            -webkit-text-fill-color: var(--indigo); color: var(--indigo);
+        }
+        .nav-right {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .user-switcher {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 6px 12px;
+        }
+        .user-switcher label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+        .user-switcher select {
+            background: transparent; border: none; color: var(--text-primary);
+            font-size: 13px; font-weight: 500; cursor: pointer; outline: none;
+            font-family: 'Inter', sans-serif; min-width: 160px;
+        }
+        .user-switcher select option { background: var(--navy-light); }
+
+        .nav-btn {
+            height: 36px; padding: 0 16px;
+            border: 1px solid var(--border); border-radius: 10px;
+            background: var(--surface2); color: var(--text-primary);
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+            display: flex; align-items: center; gap: 6px;
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+        .nav-btn.btn-danger { color: var(--rose); border-color: rgba(244,63,94,0.3); }
+        .nav-btn.btn-danger:hover { background: rgba(244,63,94,0.1); border-color: var(--rose); }
+        .nav-btn.btn-indigo { background: var(--indigo-dark); border-color: var(--indigo); color: white; }
+        .nav-btn.btn-indigo:hover { background: var(--indigo); }
+
+        /* ── TOAST ── */
+        .toast-container { position: fixed; top: 80px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            max-width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .toast.success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6EE7B7; }
+        .toast.error { background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.3); color: #FDA4AF; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+        /* ── MAIN CONTENT ── */
+        .main { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+
+        .page-grid {
+            display: grid; grid-template-columns: 420px 1fr; gap: 24px; align-items: start;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--card-radius); overflow: hidden;
+        }
+        .card-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-header h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 16px; font-weight: 600; color: var(--text-primary);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .card-header h3 .icon-badge {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .card-body { padding: 24px; }
+
+        /* ── FORM ── */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 11px 14px;
+            background: var(--navy); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-primary);
+            font-size: 14px; font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+        }
+        .form-group select option { background: var(--navy); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .submit-btn {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, var(--indigo-dark), var(--indigo));
+            border: none; border-radius: 12px; color: white;
+            font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+        }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(99,102,241,0.4); }
+        .submit-btn:active { transform: translateY(0); }
+
+        /* ── ERRANDS LIST ── */
+        .errands-list { display: flex; flex-direction: column; gap: 12px; }
+        .errand-card {
+            background: var(--navy); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px;
+            transition: border-color 0.2s;
+        }
+        .errand-card:hover { border-color: rgba(99,102,241,0.3); }
+        .errand-card-top {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+            margin-bottom: 10px;
+        }
+        .errand-type-pill {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; font-weight: 600; color: var(--text-secondary);
+        }
+        .errand-type-pill .type-icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+        }
+        .status-pill {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+            padding: 4px 12px; border-radius: 20px; text-transform: uppercase; white-space: nowrap;
+        }
+        .status-pill.pending { background: rgba(245,158,11,0.15); color: #FCD34D; border: 1px solid rgba(245,158,11,0.3); }
+        .status-pill.accepted { background: rgba(99,102,241,0.15); color: #A5B4FC; border: 1px solid rgba(99,102,241,0.3); }
+        .status-pill.completed { background: rgba(16,185,129,0.15); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.3); }
+
+        .errand-desc { font-size: 14px; color: var(--text-primary); margin-bottom: 10px; line-height: 1.5; }
+        .errand-meta {
+            display: flex; flex-wrap: wrap; gap: 12px;
+        }
+        .meta-item {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12px; color: var(--text-secondary);
+        }
+        .meta-item span { font-weight: 500; }
+        .runner-badge {
+            margin-top: 10px; padding: 10px 12px;
+            background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 8px; font-size: 13px; color: #6EE7B7;
+        }
+        .rate-btn {
+            margin-top: 10px; padding: 7px 14px;
+            background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px; color: #FCD34D; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .rate-btn:hover { background: rgba(245,158,11,0.2); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center; padding: 48px 24px;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state p { font-size: 14px; }
+
+        /* ── PROFILE MODAL ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--navy-light); border: 1px solid var(--border);
+            border-radius: 20px; width: 90%; max-width: 440px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+            animation: modalIn 0.25s ease;
+            overflow: hidden;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-top {
+            background: linear-gradient(135deg, var(--indigo-dark), #7C3AED);
+            padding: 28px 28px 24px;
+            display: flex; align-items: center; gap: 16px;
+            position: relative;
+        }
+        .avatar-ring {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 700; color: white;
+            flex-shrink: 0;
+        }
+        .modal-top-info h3 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: white; }
+        .modal-top-info p { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 3px; }
+        .close-btn {
+            position: absolute; top: 16px; right: 20px;
+            background: rgba(255,255,255,0.15); border: none; color: white;
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.25); }
+        .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+        .detail-row .value { font-size: 14px; color: var(--text-primary); font-weight: 500; text-align: right; }
+        .stat-chips { display: flex; gap: 10px; }
+        .stat-chip {
+            flex: 1; background: var(--navy); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px; text-align: center;
+        }
+        .stat-chip .num { font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 700; color: var(--indigo); }
+        .stat-chip .lbl { font-size: 11px; color: var(--text-secondary); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+        /* ── RATING MODAL ── */
+        .rating-modal-box {
+            background: var(--navy-light); border: 1px solid var(--border);
+            border-radius: 20px; width: 90%; max-width: 400px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+            animation: modalIn 0.25s ease; overflow: hidden;
+            padding: 28px;
+        }
+        .rating-modal-box h3 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+        .rating-modal-box .sub { text-align: center; color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+        .stars-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; }
+        .star {
+            font-size: 42px; cursor: pointer; color: var(--text-muted);
+            transition: all 0.15s; user-select: none;
+        }
+        .star:hover, .star.lit { color: var(--amber); filter: drop-shadow(0 0 6px rgba(245,158,11,0.5)); }
+        .review-input {
+            width: 100%; padding: 12px 14px;
+            background: var(--navy); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-primary);
+            font-size: 14px; font-family: 'Inter', sans-serif;
+            resize: vertical; min-height: 80px; outline: none; margin-bottom: 16px;
+        }
+        .review-input:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+        .rating-actions { display: flex; gap: 10px; }
+        .rating-actions button { flex: 1; padding: 11px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; border: none; }
+        .btn-submit-rating { background: var(--amber); color: #1A0A00; }
+        .btn-submit-rating:hover { background: #D97706; }
+        .btn-skip { background: var(--surface2); color: var(--text-secondary); border: 1px solid var(--border) !important; }
+        .btn-skip:hover { color: var(--text-primary); }
+
+        /* Dark mode toggle */
+        .dm-active { background: var(--indigo-dark) !important; border-color: var(--indigo) !important; color: white !important; }
+
+        /* Dark mode */
+        .dark-mode { --navy: #070B14; --navy-light: #0D1220; --surface: #0D1220; --surface2: #141C2E; }
+
+        @media (max-width: 900px) {
+            .page-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .topnav { padding: 0 16px; flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 8px; }
+            .main { padding: 20px 16px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- TOP NAV -->
+    <nav class="topnav">
+        <div class="nav-brand">
+            <div class="nav-logo">🛒</div>
+            <h2>ErrandEase</h2>
+            <span>User</span>
+        </div>
+        <div class="nav-right">
+            <div class="user-switcher">
+                <label>Switch User</label>
+                <select id="userDropdown" onchange="switchUser()">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <button class="nav-btn btn-indigo" onclick="showProfileModal()">👤 Profile</button>
+            <button class="nav-btn" id="dmBtn" onclick="toggleDarkMode()">🌙</button>
+            <button class="nav-btn" onclick="refreshAll()">🔄</button>
+            <button class="nav-btn btn-danger" onclick="logout()">Sign Out</button>
+        </div>
+    </nav>
+
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="page-grid">
+            <!-- POST ERRAND -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><span class="icon-badge" style="background:rgba(99,102,241,0.15)">📝</span> Post New Errand</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Errand Type</label>
+                        <select id="errandType">
+                            <option value="">Select a type…</option>
+                            <option value="shopping">🛍️  Shopping</option>
+                            <option value="housework">🧹  Housework</option>
+                            <option value="escort">🚗  Escort to Hospital/Clinic</option>
+                            <option value="package">📦  Deliver Package</option>
+                            <option value="companion">💬  Friend to Talk To</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="errandDescription" placeholder="Describe what you need help with…"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="errandAddress" placeholder="Full address for pickup / delivery">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date & Time</label>
+                            <input type="datetime-local" id="errandDateTime">
+                        </div>
+                        <div class="form-group">
+                            <label>Cash Amount (₹)</label>
+                            <input type="number" id="errandAmount" placeholder="e.g. 150" min="0">
+                        </div>
+                    </div>
+                    <button class="submit-btn" onclick="postErrand()">Post Errand →</button>
+                </div>
+            </div>
+
+            <!-- MY ERRANDS -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><span class="icon-badge" style="background:rgba(16,185,129,0.15)">📋</span> My Errands</h3>
+                </div>
+                <div class="card-body" style="padding: 16px;">
+                    <div id="errandsList">
+                        <div class="empty-state"><div class="empty-icon">👤</div><p>Select a user to view errands</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div class="modal-overlay" id="profileModal" onclick="handleOverlayClick(event, 'profileModal')">
+        <div class="modal-box">
+            <div class="modal-top">
+                <div class="avatar-ring" id="modalAvatar">?</div>
+                <div class="modal-top-info">
+                    <h3 id="modalFullName">—</h3>
+                    <p id="modalUsername">—</p>
+                </div>
+                <button class="close-btn" onclick="closeModal('profileModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="stat-chips">
+                    <div class="stat-chip"><div class="num" id="modalErrandCount">0</div><div class="lbl">Errands Posted</div></div>
+                </div>
+                <div class="detail-row"><span class="label">Email</span><span class="value" id="modalEmail">—</span></div>
+                <div class="detail-row"><span class="label">Member Since</span><span class="value" id="modalJoined">—</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RATING MODAL -->
+    <div class="modal-overlay" id="ratingModalOverlay">
+        <div class="rating-modal-box">
+            <h3>⭐ Rate Your Runner</h3>
+            <p class="sub">How was your experience?</p>
+            <div class="stars-row" id="starsRow">
+                <span class="star" data-v="1">★</span>
+                <span class="star" data-v="2">★</span>
+                <span class="star" data-v="3">★</span>
+                <span class="star" data-v="4">★</span>
+                <span class="star" data-v="5">★</span>
+            </div>
+            <textarea class="review-input" id="reviewText" placeholder="Write a review (optional)…"></textarea>
+            <div class="rating-actions">
+                <button class="btn-submit-rating" onclick="submitRating()">Submit Rating</button>
+                <button class="btn-skip" onclick="closeModal('ratingModalOverlay')">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:5000';
+        let currentUserId = null, currentUserData = null, userErrands = [], allUsers = [];
+        let selectedRatingValue = 0, ratingErrandId = null, ratingRunnerId = null;
+
+        /* ── DARK MODE ── */
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const on = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', on);
+            const btn = document.getElementById('dmBtn');
+            btn.textContent = on ? '☀️' : '🌙';
+            btn.classList.toggle('dm-active', on);
+        }
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dmBtn').textContent = '☀️';
+            document.getElementById('dmBtn').classList.add('dm-active');
+        }
+
+        /* ── TOAST ── */
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = (type === 'success' ? '✓' : '✕') + ' ' + msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        /* ── USERS ── */
+        async function loadUsers() {
+            const res = await fetch(`${API}/api/users`);
+            allUsers = (await res.json()).filter(u => u.Role === 'user');
+            const dd = document.getElementById('userDropdown');
+            dd.innerHTML = '<option value="">— Select User —</option>';
+            allUsers.forEach(u => {
+                const o = document.createElement('option');
+                o.value = u.UserId; o.textContent = `${u.FullName} (@${u.Username})`;
+                dd.appendChild(o);
+            });
+            if (allUsers.length) { dd.value = allUsers[0].UserId; switchUser(); }
+        }
+
+        async function switchUser() {
+            currentUserId = document.getElementById('userDropdown').value;
+            if (!currentUserId) return;
+            currentUserData = allUsers.find(u => u.UserId == currentUserId);
+            await loadUserErrands();
+        }
+
+        /* ── ERRANDS ── */
+        async function loadUserErrands() {
+            if (!currentUserId) return;
+            const res = await fetch(`${API}/api/errands/user/${currentUserId}`);
+            userErrands = await res.json();
+            renderErrands();
+        }
+
+        function renderErrands() {
+            const c = document.getElementById('errandsList');
+            if (!userErrands.length) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>No errands posted yet. Create one!</p></div>';
+                return;
+            }
+            c.innerHTML = '';
+            const list = document.createElement('div'); list.className = 'errands-list';
+            userErrands.forEach(e => {
+                const el = document.createElement('div'); el.className = 'errand-card';
+                let runnerHtml = e.RunnerName ? `<div class="runner-badge">🫱 Runner: <b>${e.RunnerName}</b></div>` : '';
+                let rateBtn = (e.Status === 'completed' && e.RunnerId) ? `<button class="rate-btn" onclick="openRatingModal(${e.ErrandId}, ${e.RunnerId})">⭐ Rate Runner</button>` : '';
+                el.innerHTML = `
+                    <div class="errand-card-top">
+                        <div class="errand-type-pill">
+                            <div class="type-icon">${typeIcon(e.Type)}</div>
+                            ${typeName(e.Type)}
+                        </div>
+                        <span class="status-pill ${e.Status}">${e.Status.toUpperCase()}</span>
+                    </div>
+                    <div class="errand-desc">${e.Description.substring(0,120)}${e.Description.length > 120 ? '…' : ''}</div>
+                    <div class="errand-meta">
+                        <div class="meta-item">📍 <span>${e.Address}</span></div>
+                        <div class="meta-item">📅 <span>${new Date(e.DateTime).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</span></div>
+                        <div class="meta-item">💰 <span>₹${e.CashAmount}</span></div>
+                    </div>
+                    ${runnerHtml}${rateBtn}`;
+                list.appendChild(el);
+            });
+            c.appendChild(list);
+        }
+
+        async function postErrand() {
+            if (!currentUserId) return showToast('Select a user first', 'error');
+            const type = document.getElementById('errandType').value;
+            const desc = document.getElementById('errandDescription').value.trim();
+            const addr = document.getElementById('errandAddress').value.trim();
+            const dt = document.getElementById('errandDateTime').value;
+            const amt = document.getElementById('errandAmount').value;
+            if (!type || !desc || !addr || !dt || !amt) return showToast('Please fill all fields', 'error');
+            const res = await fetch(`${API}/api/errands`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ userId: currentUserId, type, description: desc, address: addr, dateTime: new Date(dt).toISOString(), cashAmount: parseFloat(amt) })
+            });
+            if (res.ok) { showToast('Errand posted!'); document.getElementById('errandType').value = ''; document.getElementById('errandDescription').value = ''; document.getElementById('errandAddress').value = ''; document.getElementById('errandAmount').value = ''; setDefaultDateTime(); loadUserErrands(); }
+            else showToast('Failed to post errand', 'error');
+        }
+
+        /* ── PROFILE MODAL ── */
+        function showProfileModal() {
+            if (!currentUserData) return showToast('Select a user first', 'error');
+            const first = currentUserData.FullName.charAt(0).toUpperCase();
+            document.getElementById('modalAvatar').textContent = first;
+            document.getElementById('modalFullName').textContent = currentUserData.FullName;
+            document.getElementById('modalUsername').textContent = '@' + currentUserData.Username;
+            document.getElementById('modalEmail').textContent = currentUserData.Email || 'Not provided';
+            document.getElementById('modalJoined').textContent = new Date(currentUserData.CreatedAt).toLocaleDateString('en-IN',{dateStyle:'long'});
+            document.getElementById('modalErrandCount').textContent = userErrands.length;
+            document.getElementById('profileModal').classList.add('open');
+        }
+
+        /* ── RATING ── */
+        function openRatingModal(errandId, runnerId) {
+            ratingErrandId = errandId; ratingRunnerId = runnerId; selectedRatingValue = 0;
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('lit'));
+            document.getElementById('reviewText').value = '';
+            document.getElementById('ratingModalOverlay').classList.add('open');
+        }
+
+        document.getElementById('starsRow').addEventListener('click', e => {
+            if (!e.target.classList.contains('star')) return;
+            selectedRatingValue = parseInt(e.target.dataset.v);
+            document.querySelectorAll('.star').forEach(s => s.classList.toggle('lit', parseInt(s.dataset.v) <= selectedRatingValue));
+        });
+
+        async function submitRating() {
+            if (!selectedRatingValue) return showToast('Please select a star rating', 'error');
+            const review = document.getElementById('reviewText').value;
+            const res = await fetch(`${API}/api/ratings`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ errandId: ratingErrandId, userId: currentUserId, runnerId: ratingRunnerId, rating: selectedRatingValue, review })
+            });
+            if (res.ok) { showToast('Thank you for your rating!'); closeModal('ratingModalOverlay'); loadUserErrands(); }
+            else showToast('Failed to submit', 'error');
+        }
+
+        /* ── UTILS ── */
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function handleOverlayClick(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+        function typeIcon(t) { return {shopping:'🛍️',housework:'🧹',escort:'🚗',package:'📦',companion:'💬'}[t] || '📋'; }
+        function typeName(t) { return {shopping:'Shopping',housework:'Housework',escort:'Escort',package:'Package Delivery',companion:'Companion'}[t] || t; }
+
+        function setDefaultDateTime() {
+            const n = new Date(); n.setHours(n.getHours() + 2);
+            document.getElementById('errandDateTime').value = n.toISOString().slice(0,16);
+        }
+        function refreshAll() { if (currentUserId) loadUserErrands(); showToast('Refreshed!'); }
+        function logout() { localStorage.removeItem('userRole'); window.location.href = '/'; }
+
+        setDefaultDateTime(); loadUsers();
+    </script>
+</body>
+</html>
